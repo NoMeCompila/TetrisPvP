@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TetrisPvP - Retro Arcade 2-Player Battle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- App Container -->
+  <main id="app" class="app-container">
+    
+    <!-- Home Screen -->
+    <section id="home-screen" class="screen home-screen active">
+      <div class="home-content">
+        <div class="logo-container">
+          <h1 class="pixel-title"><span class="title-tetris">TETRIS</span><span class="title-pvp">PvP</span></h1>
+          <p class="subtitle">LOCAL 2-PLAYER SPLIT-SCREEN DUEL</p>
+        </div>
+
+        <div class="menu-actions">
+          <button id="btn-start-game" class="arcade-btn btn-primary" type="button">
+            <span class="btn-text">START GAME</span>
+          </button>
+          <button id="btn-open-instructions" class="arcade-btn btn-secondary" type="button">
+            <span class="btn-text">INSTRUCTIONS</span>
+          </button>
+        </div>
+
+        <div class="arcade-footer">
+          <p class="insert-coin blink">PRESS START TO DUEL</p>
+          <p class="target-hint">WIN GOAL: 100,000 PTS OR SURVIVE</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Game Match Screen -->
+    <section id="game-screen" class="screen game-screen">
+      <!-- Top Global Bar -->
+      <header class="match-header">
+        <div class="header-brand">TETRIS<span class="accent-text">PvP</span></div>
+        <div id="global-goal" class="goal-indicator">TARGET: 100,000 PTS</div>
+      </header>
+
+      <!-- Split Screen Arenas -->
+      <div class="match-arena">
+        <!-- Player 1 Arena (Left) -->
+        <article class="player-zone player-one" id="p1-zone">
+          <div class="player-header">
+            <div class="player-tag tag-p1">PLAYER 1</div>
+            <div class="scoreboard">
+              <span class="score-label">SCORE</span>
+              <span id="p1-score" class="score-value">0</span>
+              <span class="score-target">/ 100,000</span>
+            </div>
+          </div>
+
+          <div class="battle-station">
+            <!-- Next Piece Side Panel -->
+            <aside class="panel-preview panel-p1">
+              <div class="panel-title">NEXT</div>
+              <canvas id="p1-preview-canvas" width="100" height="100" class="preview-canvas"></canvas>
+              <div class="panel-info">
+                <span class="info-label">LINES</span>
+                <span id="p1-lines" class="info-value">0</span>
+              </div>
+            </aside>
+
+            <!-- Main Board Canvas -->
+            <div class="canvas-wrapper board-p1-wrapper">
+              <canvas id="p1-board-canvas" width="280" height="560" class="board-canvas"></canvas>
+            </div>
+          </div>
+
+          <footer class="controls-legend">
+            <span class="key-hint"><kbd>A</kbd><kbd>D</kbd> Move</span>
+            <span class="key-hint"><kbd>W</kbd> Rotate</span>
+            <span class="key-hint"><kbd>S</kbd> Hard Drop</span>
+          </footer>
+        </article>
+
+        <!-- Center Divider -->
+        <div class="center-divider">
+          <div class="divider-line"></div>
+          <div class="vs-badge">VS</div>
+          <div class="divider-line"></div>
+        </div>
+
+        <!-- Player 2 Arena (Right) -->
+        <article class="player-zone player-two" id="p2-zone">
+          <div class="player-header">
+            <div class="player-tag tag-p2">PLAYER 2</div>
+            <div class="scoreboard">
+              <span class="score-label">SCORE</span>
+              <span id="p2-score" class="score-value">0</span>
+              <span class="score-target">/ 100,000</span>
+            </div>
+          </div>
+
+          <div class="battle-station">
+            <!-- Main Board Canvas -->
+            <div class="canvas-wrapper board-p2-wrapper">
+              <canvas id="p2-board-canvas" width="280" height="560" class="board-canvas"></canvas>
+            </div>
+
+            <!-- Next Piece Side Panel -->
+            <aside class="panel-preview panel-p2">
+              <div class="panel-title">NEXT</div>
+              <canvas id="p2-preview-canvas" width="100" height="100" class="preview-canvas"></canvas>
+              <div class="panel-info">
+                <span class="info-label">LINES</span>
+                <span id="p2-lines" class="info-value">0</span>
+              </div>
+            </aside>
+          </div>
+
+          <footer class="controls-legend">
+            <span class="key-hint"><kbd>J</kbd><kbd>L</kbd> Move</span>
+            <span class="key-hint"><kbd>I</kbd> Rotate</span>
+            <span class="key-hint"><kbd>K</kbd> Hard Drop</span>
+          </footer>
+        </article>
+      </div>
+    </section>
+
+    <!-- Instructions Modal -->
+    <div id="instructions-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="instructions-title">
+      <div class="modal-card">
+        <header class="modal-header">
+          <h2 id="instructions-title" class="modal-title">RULES & CONTROLS</h2>
+          <button id="btn-close-instructions" class="modal-close-btn" type="button" aria-label="Close modal">&times;</button>
+        </header>
+        
+        <div class="modal-body">
+          <div class="rules-section">
+            <h3 class="section-title">VICTORY CONDITIONS</h3>
+            <ul class="rules-list">
+              <li><strong>Target Score:</strong> First player to reach <strong>100,000 points</strong> wins immediately!</li>
+              <li><strong>Top-Out (Overflow):</strong> If your grid overflows at the top, you lose and your opponent wins!</li>
+              <li><strong>Pure Gravity:</strong> No soft drop! Only constant gravity and instant <strong>Hard Drop</strong>.</li>
+            </ul>
+          </div>
+
+          <div class="rules-section">
+            <h3 class="section-title">SCORING TABLE</h3>
+            <div class="scoring-grid">
+              <div class="score-row"><span>1 Line</span><span class="pts">1,000 pts</span></div>
+              <div class="score-row"><span>2 Lines</span><span class="pts">3,000 pts</span></div>
+              <div class="score-row"><span>3 Lines</span><span class="pts">6,000 pts</span></div>
+              <div class="score-row"><span>4 Lines (Tetris)</span><span class="pts">12,000 pts</span></div>
+              <div class="score-row"><span>Hard Drop</span><span class="pts">+20 pts / cell</span></div>
+            </div>
+          </div>
+
+          <div class="rules-section">
+            <h3 class="section-title">CONTROLS (SAME KEYBOARD)</h3>
+            <div class="controls-comparison">
+              <div class="player-controls p1-controls">
+                <h4 class="ctrl-player-label tag-p1">PLAYER 1 (LEFT)</h4>
+                <p><kbd>A</kbd> / <kbd>D</kbd> : Move Left / Right</p>
+                <p><kbd>W</kbd> : Rotate Clockwise</p>
+                <p><kbd>S</kbd> : Hard Drop (Instant)</p>
+              </div>
+              <div class="player-controls p2-controls">
+                <h4 class="ctrl-player-label tag-p2">PLAYER 2 (RIGHT)</h4>
+                <p><kbd>J</kbd> / <kbd>L</kbd> : Move Left / Right</p>
+                <p><kbd>I</kbd> : Rotate Clockwise</p>
+                <p><kbd>K</kbd> : Hard Drop (Instant)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button id="btn-modal-got-it" class="arcade-btn btn-primary" type="button">
+            <span class="btn-text">GOT IT!</span>
+          </button>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="game-over-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="game-over-title">
+      <div class="modal-card game-over-card">
+        <header class="modal-header">
+          <h2 id="game-over-title" class="modal-title blink">MATCH FINISHED!</h2>
+        </header>
+
+        <div class="modal-body text-center">
+          <div id="winner-banner" class="winner-banner">
+            <span class="trophy-icon">&#9733;</span>
+            <h3 id="winner-announcement" class="winner-name">PLAYER 1 WINS!</h3>
+            <span class="trophy-icon">&#9733;</span>
+          </div>
+          <p id="win-reason" class="win-reason-text">REACHED TARGET SCORE (100,000 PTS)</p>
+
+          <div class="final-stats-container">
+            <div class="final-stat-box p1-stat">
+              <h4>PLAYER 1</h4>
+              <p id="final-p1-score" class="stat-score">0</p>
+              <p id="final-p1-lines" class="stat-lines">0 Lines</p>
+            </div>
+            <div class="final-stat-box p2-stat">
+              <h4>PLAYER 2</h4>
+              <p id="final-p2-score" class="stat-score">0</p>
+              <p id="final-p2-lines" class="stat-lines">0 Lines</p>
+            </div>
+          </div>
+        </div>
+
+        <footer class="modal-footer actions-dual">
+          <button id="btn-rematch" class="arcade-btn btn-primary" type="button">
+            <span class="btn-text">REMATCH</span>
+          </button>
+          <button id="btn-return-menu" class="arcade-btn btn-secondary" type="button">
+            <span class="btn-text">MAIN MENU</span>
+          </button>
+        </footer>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="main.js"></script>
+</body>
+</html>
