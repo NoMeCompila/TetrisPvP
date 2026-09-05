@@ -4,14 +4,154 @@
  */
 
 // =============================================================================
-// 1. GAME CONFIGURATION (Fully Decoupled)
+// 1. INTERNATIONALIZATION (I18N) SYSTEM (Default: Spanish 'es')
 // =============================================================================
 
-/**
- * GameConfig isolates all game balance, visual, and scoring parameters.
- * To change the win score in future menus, modify GameConfig.WIN_SCORE
- * or invoke GameConfig.setWinScore(newScore).
- */
+const TRANSLATIONS = {
+  es: {
+    pageTitle: "TetrisPvP - Duelo Arcade Retro para 2 Jugadores",
+    subtitle: "DUELO MULTIJUGADOR LOCAL EN PANTALLA DIVIDIDA",
+    btnStart: "INICIAR JUEGO",
+    btnInstructions: "INSTRUCCIONES",
+    insertCoin: "PRESIONA INICIAR PARA DUELAR",
+    targetHint: "META: 100.000 PTS O SOBREVIVIR",
+    langButton: "IDIOMA: ESPAÑOL",
+    goalIndicator: "META: 100.000 PTS",
+    player1Tag: "JUGADOR 1",
+    player2Tag: "JUGADOR 2",
+    scoreLabel: "PUNTOS",
+    scoreTarget: "/ 100.000",
+    nextLabel: "SIGUIENTE",
+    linesLabel: "LÍNEAS",
+    ctrlP1Move: "Mover",
+    ctrlP1Rotate: "Rotar",
+    ctrlP1HardDrop: "Caída Rápida",
+    ctrlP2Move: "Mover",
+    ctrlP2Rotate: "Rotar",
+    ctrlP2HardDrop: "Caída Rápida",
+    instructionsTitle: "REGLAS Y CONTROLES",
+    rulesHeadingWin: "CONDICIONES DE VICTORIA",
+    ruleTarget: "Meta de puntaje: ¡El primer jugador en alcanzar 100.000 puntos gana inmediatamente!",
+    ruleOverflow: "Desborde: Si tu cuadrícula se llena hasta el tope, perdés y gana tu oponente.",
+    ruleGravity: "Caída pura: ¡Sin caída suave! Solo gravedad constante y Caída Rápida instantánea.",
+    rulesHeadingScoring: "TABLA DE PUNTOS",
+    score1Line: "1 Línea",
+    score2Lines: "2 Líneas",
+    score3Lines: "3 Líneas",
+    score4Lines: "4 Líneas (Tetris)",
+    scoreHardDrop: "Caída Rápida",
+    perCell: "pts / celda",
+    rulesHeadingControls: "CONTROLES (MISMO TECLADO)",
+    p1ControlsLabel: "JUGADOR 1 (IZQUIERDA)",
+    p2ControlsLabel: "JUGADOR 2 (DERECHA)",
+    ctrlMoveDesc: "Mover Izq / Der",
+    ctrlRotateDesc: "Rotar Sentido Horario",
+    ctrlHardDropDesc: "Caída Rápida (Instantánea)",
+    btnGotIt: "¡ENTENDIDO!",
+    gameOverTitle: "¡PARTIDA TERMINADA!",
+    winsSuffix: "¡GANA!",
+    reasonTarget: (pts) => `ALCANZÓ LA META DE PUNTOS (${pts.toLocaleString()} PTS)`,
+    reasonP1Overflow: "JUGADOR 1 DESBORDÓ LA CUADRÍCULA",
+    reasonP2Overflow: "JUGADOR 2 DESBORDÓ LA CUADRÍCULA",
+    linesStatSuffix: "Líneas",
+    btnRematch: "REVANCHA",
+    btnReturnMenu: "MENÚ PRINCIPAL"
+  },
+  en: {
+    pageTitle: "TetrisPvP - Retro Arcade 2-Player Battle",
+    subtitle: "LOCAL 2-PLAYER SPLIT-SCREEN DUEL",
+    btnStart: "START GAME",
+    btnInstructions: "INSTRUCTIONS",
+    insertCoin: "PRESS START TO DUEL",
+    targetHint: "WIN GOAL: 100,000 PTS OR SURVIVE",
+    langButton: "LANGUAGE: ENGLISH",
+    goalIndicator: "TARGET: 100,000 PTS",
+    player1Tag: "PLAYER 1",
+    player2Tag: "PLAYER 2",
+    scoreLabel: "SCORE",
+    scoreTarget: "/ 100,000",
+    nextLabel: "NEXT",
+    linesLabel: "LINES",
+    ctrlP1Move: "Move",
+    ctrlP1Rotate: "Rotate",
+    ctrlP1HardDrop: "Hard Drop",
+    ctrlP2Move: "Move",
+    ctrlP2Rotate: "Rotate",
+    ctrlP2HardDrop: "Hard Drop",
+    instructionsTitle: "RULES & CONTROLS",
+    rulesHeadingWin: "VICTORY CONDITIONS",
+    ruleTarget: "Target Score: First player to reach 100,000 points wins immediately!",
+    ruleOverflow: "Top-Out (Overflow): If your grid overflows at the top, you lose and your opponent wins!",
+    ruleGravity: "Pure Gravity: No soft drop! Only constant gravity and instant Hard Drop.",
+    rulesHeadingScoring: "SCORING TABLE",
+    score1Line: "1 Line",
+    score2Lines: "2 Lines",
+    score3Lines: "3 Lines",
+    score4Lines: "4 Lines (Tetris)",
+    scoreHardDrop: "Hard Drop",
+    perCell: "pts / cell",
+    rulesHeadingControls: "CONTROLS (SAME KEYBOARD)",
+    p1ControlsLabel: "PLAYER 1 (LEFT)",
+    p2ControlsLabel: "PLAYER 2 (RIGHT)",
+    ctrlMoveDesc: "Move Left / Right",
+    ctrlRotateDesc: "Rotate Clockwise",
+    ctrlHardDropDesc: "Hard Drop (Instant)",
+    btnGotIt: "GOT IT!",
+    gameOverTitle: "MATCH FINISHED!",
+    winsSuffix: "WINS!",
+    reasonTarget: (pts) => `REACHED TARGET SCORE (${pts.toLocaleString()} PTS)`,
+    reasonP1Overflow: "PLAYER 1 TOPPED OUT (GRID OVERFLOW)",
+    reasonP2Overflow: "PLAYER 2 TOPPED OUT (GRID OVERFLOW)",
+    linesStatSuffix: "Lines",
+    btnRematch: "REMATCH",
+    btnReturnMenu: "MAIN MENU"
+  }
+};
+
+class I18n {
+  constructor(defaultLang = 'es') {
+    this.currentLang = defaultLang;
+  }
+
+  setLanguage(lang) {
+    if (!TRANSLATIONS[lang]) return;
+    this.currentLang = lang;
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = lang;
+      document.title = this.t('pageTitle');
+
+      // Update all elements carrying data-i18n
+      const elements = document.querySelectorAll('[data-i18n]');
+      elements.forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const translation = this.t(key);
+        if (typeof translation === 'string') {
+          el.textContent = translation;
+        }
+      });
+    }
+  }
+
+  toggleLanguage() {
+    const nextLang = this.currentLang === 'es' ? 'en' : 'es';
+    this.setLanguage(nextLang);
+    return nextLang;
+  }
+
+  t(key, ...args) {
+    const dict = TRANSLATIONS[this.currentLang] || TRANSLATIONS.es;
+    const value = dict[key];
+    if (typeof value === 'function') {
+      return value(...args);
+    }
+    return value || key;
+  }
+}
+
+// =============================================================================
+// 2. GAME CONFIGURATION (Fully Decoupled)
+// =============================================================================
+
 const GameConfig = {
   // Board Dimensions
   COLS: 10,
@@ -57,7 +197,7 @@ const GameConfig = {
 };
 
 // =============================================================================
-// 2. TETROMINO MODEL
+// 3. TETROMINO MODEL
 // =============================================================================
 
 const TETROMINO_SHAPES = {
@@ -139,7 +279,7 @@ class Tetromino {
 }
 
 // =============================================================================
-// 3. BOARD MODEL
+// 4. BOARD MODEL
 // =============================================================================
 
 class Board {
@@ -304,7 +444,7 @@ class Board {
 }
 
 // =============================================================================
-// 4. SCORE SYSTEM
+// 5. SCORE SYSTEM
 // =============================================================================
 
 class ScoreSystem {
@@ -341,7 +481,7 @@ class ScoreSystem {
 }
 
 // =============================================================================
-// 5. INPUT MANAGER (Concurrent & Non-blocking)
+// 6. INPUT MANAGER (Concurrent & Non-blocking)
 // =============================================================================
 
 class InputManager {
@@ -357,11 +497,13 @@ class InputManager {
   }
 
   bindEvents() {
+    if (typeof window === 'undefined') return;
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
   }
 
   unbindEvents() {
+    if (typeof window === 'undefined') return;
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
   }
@@ -377,7 +519,9 @@ class InputManager {
     if (!action) return;
 
     // Prevent default browser behaviors (scrolling, etc.) on mapped keys
-    event.preventDefault();
+    if (event.preventDefault) {
+      event.preventDefault();
+    }
 
     if (!action.isContinuous) {
       // Single action trigger (e.g. Rotate or Hard Drop)
@@ -434,13 +578,12 @@ class InputManager {
 }
 
 // =============================================================================
-// 6. PLAYER MODEL
+// 7. PLAYER MODEL
 // =============================================================================
 
 class Player {
-  constructor(id, name, boardCanvasId, previewCanvasId, scoreElId, linesElId) {
+  constructor(id, boardCanvasId, previewCanvasId, scoreElId, linesElId) {
     this.id = id;
-    this.name = name;
     
     // Board & Score
     this.board = new Board(GameConfig.COLS, GameConfig.ROWS);
@@ -455,12 +598,21 @@ class Player {
     this.hasToppedOut = false;
 
     // DOM & Canvas Contexts
-    this.boardCanvas = document.getElementById(boardCanvasId);
-    this.boardCtx = this.boardCanvas.getContext('2d');
-    this.previewCanvas = document.getElementById(previewCanvasId);
-    this.previewCtx = this.previewCanvas.getContext('2d');
-    this.scoreEl = document.getElementById(scoreElId);
-    this.linesEl = document.getElementById(linesElId);
+    if (typeof document !== 'undefined') {
+      this.boardCanvas = document.getElementById(boardCanvasId);
+      this.boardCtx = this.boardCanvas ? this.boardCanvas.getContext('2d') : null;
+      this.previewCanvas = document.getElementById(previewCanvasId);
+      this.previewCtx = this.previewCanvas ? this.previewCanvas.getContext('2d') : null;
+      this.scoreEl = document.getElementById(scoreElId);
+      this.linesEl = document.getElementById(linesElId);
+    }
+  }
+
+  get name() {
+    if (window.tetrisGame && window.tetrisGame.i18n) {
+      return this.id === 1 ? window.tetrisGame.i18n.t('player1Tag') : window.tetrisGame.i18n.t('player2Tag');
+    }
+    return this.id === 1 ? 'JUGADOR 1' : 'JUGADOR 2';
   }
 
   init() {
@@ -570,10 +722,12 @@ class Player {
   }
 
   render() {
+    if (!this.boardCtx) return;
     this.board.draw(this.boardCtx, GameConfig.BLOCK_SIZE, this.activePiece);
   }
 
   renderPreview() {
+    if (!this.previewCtx) return;
     const ctx = this.previewCtx;
     const size = GameConfig.PREVIEW_BLOCK_SIZE;
     const width = this.previewCanvas.width;
@@ -613,11 +767,12 @@ class Player {
 }
 
 // =============================================================================
-// 7. ENGINE & MATCH LIFECYCLE
+// 8. ENGINE & MATCH LIFECYCLE
 // =============================================================================
 
 class Engine {
   constructor() {
+    this.i18n = new I18n('es'); // Default to Spanish
     this.gameState = 'MENU'; // 'MENU' | 'PLAYING' | 'GAME_OVER'
     this.lastTimestamp = 0;
     this.animationFrameId = null;
@@ -626,7 +781,6 @@ class Engine {
     this.inputManager = new InputManager();
     this.player1 = new Player(
       1,
-      'PLAYER 1',
       'p1-board-canvas',
       'p1-preview-canvas',
       'p1-score',
@@ -634,7 +788,6 @@ class Engine {
     );
     this.player2 = new Player(
       2,
-      'PLAYER 2',
       'p2-board-canvas',
       'p2-preview-canvas',
       'p2-score',
@@ -653,6 +806,9 @@ class Engine {
     this.finalP1Lines = document.getElementById('final-p1-lines');
     this.finalP2Score = document.getElementById('final-p2-score');
     this.finalP2Lines = document.getElementById('final-p2-lines');
+
+    // Initialize UI language
+    this.i18n.setLanguage('es');
 
     this.setupInputBindings();
     this.setupUIListeners();
@@ -697,6 +853,14 @@ class Engine {
   }
 
   setupUIListeners() {
+    // Language Switcher
+    const langBtn = document.getElementById('btn-lang-toggle');
+    if (langBtn) {
+      langBtn.addEventListener('click', () => {
+        this.i18n.toggleLanguage();
+      });
+    }
+
     // Home Screen buttons
     document.getElementById('btn-start-game').addEventListener('click', () => {
       this.startMatch();
@@ -781,21 +945,21 @@ class Engine {
   checkMatchConditions() {
     // Condition A: Victory by Top-Out (Overflow)
     if (this.player1.hasToppedOut) {
-      this.endMatch(this.player2, 'PLAYER 1 TOPPED OUT (GRID OVERFLOW)');
+      this.endMatch(this.player2, this.i18n.t('reasonP1Overflow'));
       return;
     }
     if (this.player2.hasToppedOut) {
-      this.endMatch(this.player1, 'PLAYER 2 TOPPED OUT (GRID OVERFLOW)');
+      this.endMatch(this.player1, this.i18n.t('reasonP2Overflow'));
       return;
     }
 
     // Condition B: Victory by Target Score
     if (this.player1.scoreSystem.hasReachedWinScore()) {
-      this.endMatch(this.player1, `REACHED TARGET SCORE (${GameConfig.WIN_SCORE.toLocaleString()} PTS)`);
+      this.endMatch(this.player1, this.i18n.t('reasonTarget', GameConfig.WIN_SCORE));
       return;
     }
     if (this.player2.scoreSystem.hasReachedWinScore()) {
-      this.endMatch(this.player2, `REACHED TARGET SCORE (${GameConfig.WIN_SCORE.toLocaleString()} PTS)`);
+      this.endMatch(this.player2, this.i18n.t('reasonTarget', GameConfig.WIN_SCORE));
       return;
     }
   }
@@ -807,14 +971,15 @@ class Engine {
     }
 
     // Populate Game Over modal
-    this.winnerAnnouncement.textContent = `${winner.name} WINS!`;
+    this.winnerAnnouncement.textContent = `${winner.name} ${this.i18n.t('winsSuffix')}`;
     this.winnerAnnouncement.className = `winner-name ${winner.id === 1 ? 'winner-p1' : 'winner-p2'}`;
     this.winReason.textContent = reason;
 
+    const linesSuffix = this.i18n.t('linesStatSuffix');
     this.finalP1Score.textContent = `${this.player1.scoreSystem.score.toLocaleString()} pts`;
-    this.finalP1Lines.textContent = `${this.player1.scoreSystem.linesCleared} Lines`;
+    this.finalP1Lines.textContent = `${this.player1.scoreSystem.linesCleared} ${linesSuffix}`;
     this.finalP2Score.textContent = `${this.player2.scoreSystem.score.toLocaleString()} pts`;
-    this.finalP2Lines.textContent = `${this.player2.scoreSystem.linesCleared} Lines`;
+    this.finalP2Lines.textContent = `${this.player2.scoreSystem.linesCleared} ${linesSuffix}`;
 
     this.gameOverModal.classList.remove('hidden');
   }
@@ -834,9 +999,11 @@ class Engine {
 }
 
 // =============================================================================
-// 8. APPLICATION BOOTSTRAP
+// 9. APPLICATION BOOTSTRAP
 // =============================================================================
 
-window.addEventListener('DOMContentLoaded', () => {
-  window.tetrisGame = new Engine();
-});
+if (typeof window !== 'undefined') {
+  window.addEventListener('DOMContentLoaded', () => {
+    window.tetrisGame = new Engine();
+  });
+}
