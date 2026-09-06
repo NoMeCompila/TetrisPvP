@@ -14,13 +14,16 @@ const TRANSLATIONS = {
     btnStart: "INICIAR JUEGO",
     btnInstructions: "INSTRUCCIONES",
     insertCoin: "PRESIONA INICIAR PARA DUELAR",
-    targetHint: "META: 100.000 PTS O SOBREVIVIR",
+    targetScoreLabel: "META DE PUNTOS:",
+    targetHint: (pts = 100000) => `META: ${pts.toLocaleString('es-ES')} PTS O SOBREVIVIR`,
     langButton: "IDIOMA: ESPAÑOL",
-    goalIndicator: "META: 100.000 PTS",
+    soundOn: "SONIDO: ON",
+    soundOff: "SONIDO: OFF",
+    goalIndicator: (pts = 100000) => `META: ${pts.toLocaleString('es-ES')} PTS`,
     player1Tag: "JUGADOR 1",
     player2Tag: "JUGADOR 2",
     scoreLabel: "PUNTOS",
-    scoreTarget: "/ 100.000",
+    scoreTarget: (pts = 100000) => `/ ${pts.toLocaleString('es-ES')}`,
     nextLabel: "SIGUIENTE",
     linesLabel: "LÍNEAS",
     ctrlP1Move: "Mover",
@@ -33,7 +36,7 @@ const TRANSLATIONS = {
     ctrlP2HardDrop: "Caída Rápida",
     instructionsTitle: "REGLAS Y CONTROLES",
     rulesHeadingWin: "CONDICIONES DE VICTORIA",
-    ruleTarget: "Meta de puntaje: ¡El primer jugador en alcanzar 100.000 puntos gana inmediatamente!",
+    ruleTarget: "Meta de puntaje: ¡El primer jugador en alcanzar la meta de puntos configurada gana inmediatamente!",
     ruleOverflow: "Desborde: Si tu cuadrícula se llena hasta el tope, perdés y gana tu oponente.",
     ruleGravity: "Gravedad y velocidad: Controlá el descenso con Caída Suave o clava la pieza al instante con Caída Rápida.",
     rulesHeadingAttack: "MECÁNICA DE ATAQUE Y LÍNEAS BASURA",
@@ -61,7 +64,7 @@ const TRANSLATIONS = {
     btnGotIt: "¡ENTENDIDO!",
     gameOverTitle: "¡PARTIDA TERMINADA!",
     winsSuffix: "¡GANA!",
-    reasonTarget: (pts) => `ALCANZÓ LA META DE PUNTOS (${pts.toLocaleString()} PTS)`,
+    reasonTarget: (pts) => `ALCANZÓ LA META DE PUNTOS (${pts.toLocaleString('es-ES')} PTS)`,
     reasonP1Overflow: "JUGADOR 1 DESBORDÓ LA CUADRÍCULA",
     reasonP2Overflow: "JUGADOR 2 DESBORDÓ LA CUADRÍCULA",
     linesStatSuffix: "Líneas",
@@ -74,13 +77,16 @@ const TRANSLATIONS = {
     btnStart: "START GAME",
     btnInstructions: "INSTRUCTIONS",
     insertCoin: "PRESS START TO DUEL",
-    targetHint: "WIN GOAL: 100,000 PTS OR SURVIVE",
+    targetScoreLabel: "TARGET SCORE:",
+    targetHint: (pts = 100000) => `WIN GOAL: ${pts.toLocaleString('en-US')} PTS OR SURVIVE`,
     langButton: "LANGUAGE: ENGLISH",
-    goalIndicator: "TARGET: 100,000 PTS",
+    soundOn: "SOUND: ON",
+    soundOff: "SOUND: OFF",
+    goalIndicator: (pts = 100000) => `TARGET: ${pts.toLocaleString('en-US')} PTS`,
     player1Tag: "PLAYER 1",
     player2Tag: "PLAYER 2",
     scoreLabel: "SCORE",
-    scoreTarget: "/ 100,000",
+    scoreTarget: (pts = 100000) => `/ ${pts.toLocaleString('en-US')}`,
     nextLabel: "NEXT",
     linesLabel: "LINES",
     ctrlP1Move: "Move",
@@ -93,7 +99,7 @@ const TRANSLATIONS = {
     ctrlP2HardDrop: "Hard Drop",
     instructionsTitle: "RULES & CONTROLS",
     rulesHeadingWin: "VICTORY CONDITIONS",
-    ruleTarget: "Target Score: First player to reach 100,000 points wins immediately!",
+    ruleTarget: "Target Score: First player to reach the configured target score wins immediately!",
     ruleOverflow: "Top-Out (Overflow): If your grid overflows at the top, you lose and your opponent wins!",
     ruleGravity: "Gravity & Speed: Control descent with Soft Drop or drop and lock instantly with Hard Drop.",
     rulesHeadingAttack: "ATTACK MECHANICS & GARBAGE LINES",
@@ -121,7 +127,7 @@ const TRANSLATIONS = {
     btnGotIt: "GOT IT!",
     gameOverTitle: "MATCH FINISHED!",
     winsSuffix: "WINS!",
-    reasonTarget: (pts) => `REACHED TARGET SCORE (${pts.toLocaleString()} PTS)`,
+    reasonTarget: (pts) => `REACHED TARGET SCORE (${pts.toLocaleString('en-US')} PTS)`,
     reasonP1Overflow: "PLAYER 1 TOPPED OUT (GRID OVERFLOW)",
     reasonP2Overflow: "PLAYER 2 TOPPED OUT (GRID OVERFLOW)",
     linesStatSuffix: "Lines",
@@ -827,6 +833,7 @@ class Player {
     if (!this.activePiece || this.hasToppedOut) return;
     if (this.board.isValidPosition(this.activePiece, this.activePiece.x - 1, this.activePiece.y)) {
       this.activePiece.x--;
+      if (window.soundManager) window.soundManager.playMove();
     }
   }
 
@@ -834,6 +841,7 @@ class Player {
     if (!this.activePiece || this.hasToppedOut) return;
     if (this.board.isValidPosition(this.activePiece, this.activePiece.x + 1, this.activePiece.y)) {
       this.activePiece.x++;
+      if (window.soundManager) window.soundManager.playMove();
     }
   }
 
@@ -861,6 +869,7 @@ class Player {
     if (this.board.isValidPosition(this.activePiece, this.activePiece.x, this.activePiece.y + 1)) {
       this.activePiece.y++;
       this.gravityAccumulator = 0;
+      if (window.soundManager) window.soundManager.playMove();
     }
   }
 
@@ -874,6 +883,7 @@ class Player {
 
     // Instant placement & lock
     this.activePiece.y = ghostY;
+    if (window.soundManager) window.soundManager.playHardDrop();
     this.lockPiece();
     this.updateUI();
   }
@@ -886,6 +896,9 @@ class Player {
     const { cleared, hasHomogeneousSpecialLine } = this.board.clearLines();
 
     if (cleared > 0) {
+      if (window.soundManager) {
+        window.soundManager.playLineClear(cleared);
+      }
       let isDoubled = false;
 
       // Exclusive Garbage Attack conditions:
@@ -1057,11 +1070,58 @@ class Engine {
     this.finalP2Score = document.getElementById('final-p2-score');
     this.finalP2Lines = document.getElementById('final-p2-lines');
 
-    // Initialize UI language
+    // Initialize UI language and Target Score state
+    this.activeWinScore = GameConfig.WIN_SCORE;
     this.i18n.setLanguage('es');
 
     this.setupInputBindings();
     this.setupUIListeners();
+    this.updateTargetScoreUI();
+  }
+
+  updateTargetScoreUI() {
+    const winScore = this.activeWinScore || GameConfig.WIN_SCORE;
+
+    // 1. Update Home Screen Hint
+    const targetHintEl = document.querySelector('.target-hint');
+    if (targetHintEl) {
+      targetHintEl.textContent = this.i18n.t('targetHint', winScore);
+    }
+
+    // 2. Update In-Game Header Goal
+    const globalGoalEl = document.getElementById('global-goal');
+    if (globalGoalEl) {
+      globalGoalEl.textContent = this.i18n.t('goalIndicator', winScore);
+    }
+
+    // 3. Update Player Score Targets (/ 100.000)
+    const scoreTargets = document.querySelectorAll('.score-target');
+    scoreTargets.forEach(el => {
+      el.textContent = this.i18n.t('scoreTarget', winScore);
+    });
+
+    // 4. Update Target Score Selector Options Text formatted to active locale
+    const selectEl = document.getElementById('select-target-score');
+    if (selectEl) {
+      const isSpanish = this.i18n.currentLang === 'es';
+      const optionsConfig = [
+        { value: 100000, suffix: '100K' },
+        { value: 250000, suffix: '250K' },
+        { value: 500000, suffix: '500K' },
+        { value: 1000000, suffix: '1M' },
+        { value: 2500000, suffix: '2.5M' },
+        { value: 5000000, suffix: '5M' }
+      ];
+
+      Array.from(selectEl.options).forEach((opt, idx) => {
+        const cfg = optionsConfig[idx];
+        if (cfg) {
+          const formattedNum = isSpanish ? cfg.value.toLocaleString('es-ES') : cfg.value.toLocaleString('en-US');
+          opt.textContent = `${formattedNum} (${cfg.suffix})`;
+        }
+      });
+      selectEl.value = String(winScore);
+    }
   }
 
   setupInputBindings() {
@@ -1119,16 +1179,64 @@ class Engine {
   }
 
   setupUIListeners() {
+    // Sound Controls (Home Screen & Match Header)
+    const updateSoundUI = () => {
+      const isMuted = window.soundManager ? window.soundManager.isMuted : false;
+      const icon = isMuted ? '🔇' : '🔊';
+      const labelText = isMuted ? this.i18n.t('soundOff') : this.i18n.t('soundOn');
+
+      const soundIcon = document.getElementById('sound-icon');
+      const soundLabel = document.getElementById('sound-label');
+      const matchSoundIcon = document.getElementById('match-sound-icon');
+
+      if (soundIcon) soundIcon.textContent = icon;
+      if (soundLabel) {
+        soundLabel.setAttribute('data-i18n', isMuted ? 'soundOff' : 'soundOn');
+        soundLabel.textContent = labelText;
+      }
+      if (matchSoundIcon) matchSoundIcon.textContent = icon;
+    };
+
+    const handleSoundToggle = () => {
+      if (window.soundManager) {
+        window.soundManager.init();
+        window.soundManager.toggleMute();
+        updateSoundUI();
+      }
+    };
+
+    const soundBtn = document.getElementById('btn-sound-toggle');
+    if (soundBtn) soundBtn.addEventListener('click', handleSoundToggle);
+
+    const matchSoundBtn = document.getElementById('btn-sound-match-toggle');
+    if (matchSoundBtn) matchSoundBtn.addEventListener('click', handleSoundToggle);
+
     // Language Switcher
     const langBtn = document.getElementById('btn-lang-toggle');
     if (langBtn) {
       langBtn.addEventListener('click', () => {
         this.i18n.toggleLanguage();
+        updateSoundUI();
+        this.updateTargetScoreUI();
+      });
+    }
+
+    // Target Score Selector Dropdown
+    const targetScoreSelect = document.getElementById('select-target-score');
+    if (targetScoreSelect) {
+      targetScoreSelect.addEventListener('change', (e) => {
+        const selectedValue = parseInt(e.target.value, 10);
+        if (!isNaN(selectedValue) && selectedValue > 0) {
+          this.activeWinScore = selectedValue;
+          GameConfig.setWinScore(selectedValue);
+          this.updateTargetScoreUI();
+        }
       });
     }
 
     // Home Screen buttons
     document.getElementById('btn-start-game').addEventListener('click', () => {
+      if (window.soundManager) window.soundManager.init();
       this.startMatch();
     });
 
@@ -1165,10 +1273,20 @@ class Engine {
   }
 
   startMatch() {
+    if (window.soundManager) {
+      window.soundManager.init();
+      window.soundManager.startBGM();
+    }
     this.homeScreen.classList.remove('active');
     this.gameScreen.classList.add('active');
     this.hideGameOver();
     this.toggleInstructions(false);
+
+    // Apply configured target score to both players
+    GameConfig.setWinScore(this.activeWinScore);
+    this.player1.scoreSystem.winScore = this.activeWinScore;
+    this.player2.scoreSystem.winScore = this.activeWinScore;
+    this.updateTargetScoreUI();
 
     this.inputManager.reset();
     this.player1.init();
@@ -1235,6 +1353,10 @@ class Engine {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
+    if (window.soundManager) {
+      window.soundManager.stopBGM();
+      window.soundManager.playGameOver();
+    }
 
     // Populate Game Over modal
     this.winnerAnnouncement.textContent = `${winner.name} ${this.i18n.t('winsSuffix')}`;
@@ -1259,6 +1381,9 @@ class Engine {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
+    if (window.soundManager) {
+      window.soundManager.stopBGM();
+    }
     this.gameScreen.classList.remove('active');
     this.homeScreen.classList.add('active');
   }
@@ -1271,5 +1396,12 @@ class Engine {
 if (typeof window !== 'undefined') {
   window.addEventListener('DOMContentLoaded', () => {
     window.tetrisGame = new Engine();
+
+    // Unlock AudioContext on first user key interaction anywhere
+    window.addEventListener('keydown', () => {
+      if (window.soundManager && !window.soundManager.isUnlocked) {
+        window.soundManager.init();
+      }
+    }, { once: true });
   });
 }

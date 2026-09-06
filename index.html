@@ -16,8 +16,11 @@
     <!-- Home Screen -->
     <section id="home-screen" class="screen home-screen active">
       <div class="home-content">
-        <!-- Language Switcher Bar -->
+        <!-- Controls Bar (Sound & Language) -->
         <div class="lang-bar">
+          <button id="btn-sound-toggle" class="arcade-btn btn-sound" type="button" aria-label="Alternar sonido">
+            <span id="sound-icon">🔊</span> <span id="sound-label" data-i18n="soundOn">SONIDO: ON</span>
+          </button>
           <button id="btn-lang-toggle" class="arcade-btn btn-lang" type="button" aria-label="Cambiar idioma">
             <span class="lang-icon">🌐</span> <span id="lang-label" data-i18n="langButton">IDIOMA: ESPAÑOL</span>
           </button>
@@ -26,6 +29,18 @@
         <div class="logo-container">
           <h1 class="pixel-title"><span class="title-tetris">TETRIS</span><span class="title-pvp">PvP</span></h1>
           <p class="subtitle" data-i18n="subtitle">DUELO MULTIJUGADOR LOCAL EN PANTALLA DIVIDIDA</p>
+        </div>
+
+        <div class="target-score-config">
+          <label for="select-target-score" class="target-score-label" data-i18n="targetScoreLabel">META DE PUNTOS:</label>
+          <select id="select-target-score" class="arcade-select" aria-label="Meta de puntos">
+            <option value="100000" selected>100.000 (100K)</option>
+            <option value="250000">250.000 (250K)</option>
+            <option value="500000">500.000 (500K)</option>
+            <option value="1000000">1.000.000 (1M)</option>
+            <option value="2500000">2.500.000 (2.5M)</option>
+            <option value="5000000">5.000.000 (5M)</option>
+          </select>
         </div>
 
         <div class="menu-actions">
@@ -50,6 +65,9 @@
       <header class="match-header">
         <div class="header-brand">TETRIS<span class="accent-text">PvP</span></div>
         <div id="global-goal" class="goal-indicator" data-i18n="goalIndicator">META: 100.000 PTS</div>
+        <button id="btn-sound-match-toggle" class="arcade-btn btn-sound match-sound-btn" type="button" aria-label="Alternar sonido">
+          <span id="match-sound-icon">🔊</span>
+        </button>
       </header>
 
       <!-- Split Screen Arenas -->
@@ -248,6 +266,7 @@
 
   </main>
 
+  <script src="SoundManager.js"></script>
   <script src="main.js"></script>
 </body>
 </html>

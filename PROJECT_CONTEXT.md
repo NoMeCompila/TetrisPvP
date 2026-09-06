@@ -86,6 +86,11 @@ WordsWars/
      - **Por Desborde**: Si un jugador no puede colocar la pieza entrante en la parte superior, pierde inmediatamente y gana el contrincante.
      - **Por Puntaje**: El primero en alcanzar `WIN_SCORE` (100.000 pts) gana la partida.
 
+9. **`SoundManager` (Web Audio API)**:
+   - Motor procedural de sonido retro sin dependencias ni archivos externos.
+   - Maneja el desbloqueo de `AudioContext` cumpliendo la política de Autoplay al interactuar con el juego.
+   - Métodos de síntesis: `playMove()` (blip sutil de 35ms), `playHardDrop()` (impacto percusivo seco), `playLineClear(linesCount)` (escala tonal y arpegio ascendente para Tetris), `playGameOver()` (rampa descendente con oscilador sawtooth) y `toggleMute()`.
+
 ---
 
 ## 5. Mapeo de Controles (Mismo Teclado)

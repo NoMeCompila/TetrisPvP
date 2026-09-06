@@ -108,7 +108,15 @@ html, body {
   width: 100%;
 }
 
-.btn-lang {
+.lang-bar {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.btn-lang,
+.btn-sound {
   padding: 8px 16px;
   font-size: 10px;
   border-color: var(--accent-gold);
@@ -117,9 +125,11 @@ html, body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  cursor: pointer;
 }
 
-.btn-lang:hover {
+.btn-lang:hover,
+.btn-sound:hover {
   background-color: var(--accent-gold);
   color: #000;
   box-shadow: 4px 4px 0px #000, 0 0 15px rgba(255, 204, 0, 0.4);
@@ -147,6 +157,55 @@ html, body {
   font-size: clamp(10px, 1.5vw, 14px);
   color: var(--text-muted);
   letter-spacing: 2px;
+}
+
+/* Target Score Selector in Home Menu */
+.target-score-config {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.target-score-label {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: var(--accent-gold);
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0px #000;
+}
+
+.arcade-select {
+  font-family: var(--font-pixel);
+  font-size: 11px;
+  padding: 12px 14px;
+  width: 100%;
+  background-color: var(--bg-card);
+  color: var(--color-cyan);
+  border: 3px solid var(--color-cyan);
+  box-shadow: 4px 4px 0px #000, 0 0 10px rgba(0, 240, 240, 0.25);
+  outline: none;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease-in-out;
+}
+
+.arcade-select:hover,
+.arcade-select:focus {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  box-shadow: 6px 6px 0px #000, 0 0 15px rgba(255, 204, 0, 0.4);
+  transform: translate(-2px, -2px);
+}
+
+.arcade-select option {
+  background-color: var(--bg-board);
+  color: var(--text-main);
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  padding: 8px;
 }
 
 .menu-actions {
@@ -246,6 +305,11 @@ html, body {
   height: 40px;
   padding: 0 16px;
   border-bottom: 2px solid var(--grid-line);
+}
+
+.match-sound-btn {
+  padding: 4px 10px;
+  font-size: 11px;
 }
 
 .header-brand {
