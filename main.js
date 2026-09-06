@@ -25,15 +25,17 @@ const TRANSLATIONS = {
     linesLabel: "LÍNEAS",
     ctrlP1Move: "Mover",
     ctrlP1Rotate: "Rotar",
+    ctrlP1SoftDrop: "Caída Suave",
     ctrlP1HardDrop: "Caída Rápida",
     ctrlP2Move: "Mover",
     ctrlP2Rotate: "Rotar",
+    ctrlP2SoftDrop: "Caída Suave",
     ctrlP2HardDrop: "Caída Rápida",
     instructionsTitle: "REGLAS Y CONTROLES",
     rulesHeadingWin: "CONDICIONES DE VICTORIA",
     ruleTarget: "Meta de puntaje: ¡El primer jugador en alcanzar 100.000 puntos gana inmediatamente!",
     ruleOverflow: "Desborde: Si tu cuadrícula se llena hasta el tope, perdés y gana tu oponente.",
-    ruleGravity: "Caída pura: ¡Sin caída suave! Solo gravedad constante y Caída Rápida instantánea.",
+    ruleGravity: "Gravedad y velocidad: Controlá el descenso con Caída Suave o clava la pieza al instante con Caída Rápida.",
     rulesHeadingScoring: "TABLA DE PUNTOS",
     score1Line: "1 Línea",
     score2Lines: "2 Líneas",
@@ -46,6 +48,7 @@ const TRANSLATIONS = {
     p2ControlsLabel: "JUGADOR 2 (DERECHA)",
     ctrlMoveDesc: "Mover Izq / Der",
     ctrlRotateDesc: "Rotar Sentido Horario",
+    ctrlSoftDropDesc: "Caída Suave (Acelerar)",
     ctrlHardDropDesc: "Caída Rápida (Instantánea)",
     btnGotIt: "¡ENTENDIDO!",
     gameOverTitle: "¡PARTIDA TERMINADA!",
@@ -74,15 +77,17 @@ const TRANSLATIONS = {
     linesLabel: "LINES",
     ctrlP1Move: "Move",
     ctrlP1Rotate: "Rotate",
+    ctrlP1SoftDrop: "Soft Drop",
     ctrlP1HardDrop: "Hard Drop",
     ctrlP2Move: "Move",
     ctrlP2Rotate: "Rotate",
+    ctrlP2SoftDrop: "Soft Drop",
     ctrlP2HardDrop: "Hard Drop",
     instructionsTitle: "RULES & CONTROLS",
     rulesHeadingWin: "VICTORY CONDITIONS",
     ruleTarget: "Target Score: First player to reach 100,000 points wins immediately!",
     ruleOverflow: "Top-Out (Overflow): If your grid overflows at the top, you lose and your opponent wins!",
-    ruleGravity: "Pure Gravity: No soft drop! Only constant gravity and instant Hard Drop.",
+    ruleGravity: "Gravity & Speed: Control descent with Soft Drop or drop and lock instantly with Hard Drop.",
     rulesHeadingScoring: "SCORING TABLE",
     score1Line: "1 Line",
     score2Lines: "2 Lines",
@@ -95,6 +100,7 @@ const TRANSLATIONS = {
     p2ControlsLabel: "PLAYER 2 (RIGHT)",
     ctrlMoveDesc: "Move Left / Right",
     ctrlRotateDesc: "Rotate Clockwise",
+    ctrlSoftDropDesc: "Soft Drop (Accelerate)",
     ctrlHardDropDesc: "Hard Drop (Instant)",
     btnGotIt: "GOT IT!",
     gameOverTitle: "MATCH FINISHED!",
@@ -670,6 +676,14 @@ class Player {
     }
   }
 
+  softDrop() {
+    if (!this.activePiece || this.hasToppedOut) return;
+    if (this.board.isValidPosition(this.activePiece, this.activePiece.x, this.activePiece.y + 1)) {
+      this.activePiece.y++;
+      this.gravityAccumulator = 0;
+    }
+  }
+
   hardDrop() {
     if (!this.activePiece || this.hasToppedOut) return;
     const ghostY = this.board.getGhostY(this.activePiece);
@@ -815,7 +829,7 @@ class Engine {
   }
 
   setupInputBindings() {
-    // Player 1: WASD
+    // Player 1: A/D Move, W Rotate, S Soft Drop, F/Space Hard Drop
     this.inputManager.registerAction('KeyA', {
       onTrigger: () => { if (this.gameState === 'PLAYING') this.player1.moveLeft(); },
       isContinuous: true
@@ -829,11 +843,19 @@ class Engine {
       isContinuous: false
     });
     this.inputManager.registerAction('KeyS', {
+      onTrigger: () => { if (this.gameState === 'PLAYING') this.player1.softDrop(); },
+      isContinuous: true
+    });
+    this.inputManager.registerAction('KeyF', {
+      onTrigger: () => { if (this.gameState === 'PLAYING') this.player1.hardDrop(); },
+      isContinuous: false
+    });
+    this.inputManager.registerAction('Space', {
       onTrigger: () => { if (this.gameState === 'PLAYING') this.player1.hardDrop(); },
       isContinuous: false
     });
 
-    // Player 2: IJKL
+    // Player 2: J/L Move, I Rotate, K Soft Drop, H/Enter Hard Drop
     this.inputManager.registerAction('KeyJ', {
       onTrigger: () => { if (this.gameState === 'PLAYING') this.player2.moveLeft(); },
       isContinuous: true
@@ -847,6 +869,14 @@ class Engine {
       isContinuous: false
     });
     this.inputManager.registerAction('KeyK', {
+      onTrigger: () => { if (this.gameState === 'PLAYING') this.player2.softDrop(); },
+      isContinuous: true
+    });
+    this.inputManager.registerAction('KeyH', {
+      onTrigger: () => { if (this.gameState === 'PLAYING') this.player2.hardDrop(); },
+      isContinuous: false
+    });
+    this.inputManager.registerAction('Enter', {
       onTrigger: () => { if (this.gameState === 'PLAYING') this.player2.hardDrop(); },
       isContinuous: false
     });
