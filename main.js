@@ -36,12 +36,20 @@ const TRANSLATIONS = {
     ruleTarget: "Meta de puntaje: ¡El primer jugador en alcanzar 100.000 puntos gana inmediatamente!",
     ruleOverflow: "Desborde: Si tu cuadrícula se llena hasta el tope, perdés y gana tu oponente.",
     ruleGravity: "Gravedad y velocidad: Controlá el descenso con Caída Suave o clava la pieza al instante con Caída Rápida.",
+    rulesHeadingAttack: "MECÁNICA DE ATAQUE Y LÍNEAS BASURA",
+    ruleSpecialPiece: "Tetrominó Especial: Cada 5 piezas aparece una pieza multicolor brillante con bordes de neón.",
+    ruleAttackActivation: "Activación de ataque: Al limpiar líneas con una pieza especial o completar una fila 100% especial, se envían líneas de basura al rival. Filas mixtas con piezas normales no atacan.",
+    ruleAttackScale: "Escala de ataque: 1-2 líneas envían 2 filas; 3 líneas envían 3 filas; 4 líneas (Tetris) envían 4 filas y +10.000 pts extra.",
+    ruleGarbageHoles: "Líneas de basura: Empujan el tablero rival hacia arriba y tienen 1 hueco aleatorio para poder despejarlas.",
+    ruleSaturation: "Tope de 16 filas: Máximo 16 filas de basura. Si el rival ya tiene 16 filas, ¡tus ataques especiales otorgan el doble de puntos!",
     rulesHeadingScoring: "TABLA DE PUNTOS",
     score1Line: "1 Línea",
     score2Lines: "2 Líneas",
     score3Lines: "3 Líneas",
     score4Lines: "4 Líneas (Tetris)",
     scoreHardDrop: "Caída Rápida",
+    scoreSpecialTetris: "Bono Tetris Especial",
+    scoreSaturationBonus: "Ataque en Saturación (16 filas)",
     perCell: "pts / celda",
     rulesHeadingControls: "CONTROLES (MISMO TECLADO)",
     p1ControlsLabel: "JUGADOR 1 (IZQUIERDA)",
@@ -88,12 +96,20 @@ const TRANSLATIONS = {
     ruleTarget: "Target Score: First player to reach 100,000 points wins immediately!",
     ruleOverflow: "Top-Out (Overflow): If your grid overflows at the top, you lose and your opponent wins!",
     ruleGravity: "Gravity & Speed: Control descent with Soft Drop or drop and lock instantly with Hard Drop.",
+    rulesHeadingAttack: "ATTACK MECHANICS & GARBAGE LINES",
+    ruleSpecialPiece: "Special Tetromino: Every 5th piece is a glowing rainbow tetromino with neon borders.",
+    ruleAttackActivation: "Attack Activation: Clearing lines with a special piece or completing a 100% special row sends garbage lines to opponent. Mixed rows with normal pieces do not attack.",
+    ruleAttackScale: "Attack Scale: 1-2 lines send 2 gray rows; 3 lines send 3 rows; 4 lines (Tetris) send 4 rows and +10,000 bonus pts.",
+    ruleGarbageHoles: "Garbage Lines: Push opponent's grid upward with exactly 1 random hole per row to allow clearing.",
+    ruleSaturation: "16-Row Cap: Garbage lines cannot exceed 16 rows. If opponent already has 16 rows, your special clears award 2x points!",
     rulesHeadingScoring: "SCORING TABLE",
     score1Line: "1 Line",
     score2Lines: "2 Lines",
     score3Lines: "3 Lines",
     score4Lines: "4 Lines (Tetris)",
     scoreHardDrop: "Hard Drop",
+    scoreSpecialTetris: "Special Tetris Bonus",
+    scoreSaturationBonus: "Saturated Attack (16 rows)",
     perCell: "pts / cell",
     rulesHeadingControls: "CONTROLS (SAME KEYBOARD)",
     p1ControlsLabel: "PLAYER 1 (LEFT)",
@@ -246,25 +262,66 @@ const TETROMINO_SHAPES = {
 
 const TETROMINO_KEYS = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
 
+const SPECIAL_MINO_COLORS = [
+  '#ff0055', // Hot Pink
+  '#00ffcc', // Aqua
+  '#ffcc00', // Neon Yellow
+  '#cc00ff', // Purple Neon
+  '#ff6600', // Orange Neon
+  '#00ff66'  // Lime Neon
+];
+
 class Tetromino {
-  constructor(type) {
+  constructor(type, isSpecial = false) {
     this.type = type;
     this.matrix = TETROMINO_SHAPES[type].map(row => [...row]);
     this.color = GameConfig.COLORS[type];
+    this.isSpecial = Boolean(isSpecial);
+    this.colorMatrix = null;
     this.x = 0;
     this.y = 0;
+
+    if (this.isSpecial) {
+      this.initSpecialColors();
+    }
   }
 
-  static getRandom() {
+  initSpecialColors() {
+    const colors = [...SPECIAL_MINO_COLORS];
+    for (let i = colors.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [colors[i], colors[j]] = [colors[j], colors[i]];
+    }
+
+    let colorIdx = 0;
+    const size = this.matrix.length;
+    this.colorMatrix = [];
+    for (let r = 0; r < size; r++) {
+      this.colorMatrix.push([]);
+      for (let c = 0; c < size; c++) {
+        if (this.matrix[r][c] !== 0) {
+          this.colorMatrix[r].push(colors[colorIdx % colors.length]);
+          colorIdx++;
+        } else {
+          this.colorMatrix[r].push(null);
+        }
+      }
+    }
+  }
+
+  static getRandom(isSpecial = false) {
     const randomIndex = Math.floor(Math.random() * TETROMINO_KEYS.length);
     const type = TETROMINO_KEYS[randomIndex];
-    return new Tetromino(type);
+    return new Tetromino(type, isSpecial);
   }
 
   clone() {
-    const piece = new Tetromino(this.type);
+    const piece = new Tetromino(this.type, this.isSpecial);
     piece.matrix = this.matrix.map(row => [...row]);
     piece.color = this.color;
+    if (this.colorMatrix) {
+      piece.colorMatrix = this.colorMatrix.map(row => [...row]);
+    }
     piece.x = this.x;
     piece.y = this.y;
     return piece;
@@ -278,6 +335,19 @@ class Tetromino {
       rotated.push([]);
       for (let c = 0; c < size; c++) {
         rotated[r][c] = this.matrix[size - 1 - c][r];
+      }
+    }
+    return rotated;
+  }
+
+  rotateColorMatrix(colorMatrix) {
+    if (!colorMatrix) return null;
+    const size = colorMatrix.length;
+    const rotated = [];
+    for (let r = 0; r < size; r++) {
+      rotated.push([]);
+      for (let c = 0; c < size; c++) {
+        rotated[r][c] = colorMatrix[size - 1 - c][r];
       }
     }
     return rotated;
@@ -334,7 +404,14 @@ class Board {
           const cellY = piece.y + r;
           const cellX = piece.x + c;
           if (cellY >= 0 && cellY < this.rows && cellX >= 0 && cellX < this.cols) {
-            this.grid[cellY][cellX] = piece.color;
+            const minoColor = (piece.isSpecial && piece.colorMatrix && piece.colorMatrix[r][c])
+              ? piece.colorMatrix[r][c]
+              : piece.color;
+            this.grid[cellY][cellX] = {
+              color: minoColor,
+              isSpecial: Boolean(piece.isSpecial),
+              isGarbage: false
+            };
           }
         }
       }
@@ -343,16 +420,65 @@ class Board {
 
   clearLines() {
     let cleared = 0;
+    let hasHomogeneousSpecialLine = false;
+
     for (let r = this.rows - 1; r >= 0; r--) {
       const isFullRow = this.grid[r].every(cell => cell !== null);
       if (isFullRow) {
+        const isHomogeneousSpecial = this.grid[r].every(cell => cell && cell.isSpecial);
+        if (isHomogeneousSpecial) {
+          hasHomogeneousSpecialLine = true;
+        }
         this.grid.splice(r, 1);
         this.grid.unshift(Array(this.cols).fill(null));
         cleared++;
         r++; // Re-check the same row index since lines shifted down
       }
     }
-    return cleared;
+    return { cleared, hasHomogeneousSpecialLine };
+  }
+
+  getGarbageRowCount() {
+    let count = 0;
+    for (let r = this.rows - 1; r >= 0; r--) {
+      if (this.grid[r].some(cell => cell && cell.isGarbage)) {
+        count++;
+      } else {
+        break; // consecutive garbage rows from bottom
+      }
+    }
+    return count;
+  }
+
+  receiveGarbageLines(count) {
+    if (count <= 0) return { inserted: 0, isSaturated: false };
+
+    const currentGarbage = this.getGarbageRowCount();
+    const maxAllowed = 16;
+
+    if (currentGarbage >= maxAllowed) {
+      return { inserted: 0, isSaturated: true };
+    }
+
+    const linesToInsert = Math.min(count, maxAllowed - currentGarbage);
+
+    for (let i = 0; i < linesToInsert; i++) {
+      this.grid.shift(); // push rows upward from bottom
+
+      const holeCol = Math.floor(Math.random() * this.cols);
+      const newRow = Array.from({ length: this.cols }, (_, col) => {
+        if (col === holeCol) return null;
+        return {
+          color: '#555555',
+          isSpecial: false,
+          isGarbage: true
+        };
+      });
+
+      this.grid.push(newRow);
+    }
+
+    return { inserted: linesToInsert, isSaturated: false };
   }
 
   getGhostY(piece) {
@@ -392,9 +518,12 @@ class Board {
     // Draw locked cells
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
-        const color = this.grid[r][c];
-        if (color) {
-          this.drawBlock(ctx, c * blockSize, r * blockSize, blockSize, color);
+        const cell = this.grid[r][c];
+        if (cell) {
+          const color = typeof cell === 'object' ? cell.color : cell;
+          const isSpecial = typeof cell === 'object' ? Boolean(cell.isSpecial) : false;
+          const isGarbage = typeof cell === 'object' ? Boolean(cell.isGarbage) : false;
+          this.drawBlock(ctx, c * blockSize, r * blockSize, blockSize, color, isSpecial, isGarbage);
         }
       }
     }
@@ -411,7 +540,7 @@ class Board {
     }
   }
 
-  drawPiece(ctx, piece, startX, startY, blockSize, color, isGhost = false) {
+  drawPiece(ctx, piece, startX, startY, blockSize, fallbackColor, isGhost = false) {
     const size = piece.matrix.length;
     for (let r = 0; r < size; r++) {
       for (let c = 0; c < size; c++) {
@@ -423,10 +552,13 @@ class Board {
               ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
               ctx.lineWidth = 1.5;
               ctx.strokeRect(px + 1, py + 1, blockSize - 2, blockSize - 2);
-              ctx.fillStyle = color;
+              ctx.fillStyle = fallbackColor;
               ctx.fillRect(px + 2, py + 2, blockSize - 4, blockSize - 4);
             } else {
-              this.drawBlock(ctx, px, py, blockSize, color);
+              const color = (piece.isSpecial && piece.colorMatrix && piece.colorMatrix[r][c])
+                ? piece.colorMatrix[r][c]
+                : (piece.color || fallbackColor);
+              this.drawBlock(ctx, px, py, blockSize, color, piece.isSpecial, false);
             }
           }
         }
@@ -434,18 +566,45 @@ class Board {
     }
   }
 
-  drawBlock(ctx, x, y, size, color) {
-    ctx.fillStyle = color;
-    ctx.fillRect(x + 1, y + 1, size - 2, size - 2);
+  drawBlock(ctx, x, y, size, color, isSpecial = false, isGarbage = false) {
+    if (isSpecial) {
+      ctx.save();
+      // Glowing neon border & vibrant fill
+      ctx.shadowColor = '#ffffff';
+      ctx.shadowBlur = 8;
+      ctx.fillStyle = color;
+      ctx.fillRect(x + 1, y + 1, size - 2, size - 2);
 
-    // Bevel highlights for retro pixel arcade feel
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-    ctx.fillRect(x + 1, y + 1, size - 2, 3);
-    ctx.fillRect(x + 1, y + 1, 3, size - 2);
+      // Bright white inner highlight border
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(x + 1.5, y + 1.5, size - 3, size - 3);
+      ctx.restore();
+    } else if (isGarbage) {
+      // Solid opaque gray with industrial etched border
+      ctx.fillStyle = '#555555';
+      ctx.fillRect(x + 1, y + 1, size - 2, size - 2);
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-    ctx.fillRect(x + 1, y + size - 4, size - 2, 3);
-    ctx.fillRect(x + size - 4, y + 1, 3, size - 2);
+      ctx.strokeStyle = '#333333';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(x + 2, y + 2, size - 4, size - 4);
+
+      // Subtle metallic highlight
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.fillRect(x + 2, y + 2, size - 4, 2);
+    } else {
+      ctx.fillStyle = color;
+      ctx.fillRect(x + 1, y + 1, size - 2, size - 2);
+
+      // Bevel highlights for retro pixel arcade feel
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.fillRect(x + 1, y + 1, size - 2, 3);
+      ctx.fillRect(x + 1, y + 1, 3, size - 2);
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.fillRect(x + 1, y + size - 4, size - 2, 3);
+      ctx.fillRect(x + size - 4, y + 1, 3, size - 2);
+    }
   }
 }
 
@@ -466,12 +625,19 @@ class ScoreSystem {
     this.winScore = GameConfig.WIN_SCORE;
   }
 
-  addLineScore(lines) {
+  addLineScore(lines, isDoubled = false) {
     if (lines <= 0) return 0;
     this.linesCleared += lines;
-    const addedPoints = GameConfig.LINE_POINTS[lines] || (lines * 1000);
+    let addedPoints = GameConfig.LINE_POINTS[lines] || (lines * 1000);
+    if (isDoubled) {
+      addedPoints *= 2;
+    }
     this.score += addedPoints;
     return addedPoints;
+  }
+
+  addSpecialTetrisBonus() {
+    this.score += 10000;
   }
 
   addHardDropScore(dropDistance) {
@@ -603,6 +769,9 @@ class Player {
     this.gravityAccumulator = 0;
     this.hasToppedOut = false;
 
+    this.opponent = null;
+    this.pieceSpawnCount = 0;
+
     // DOM & Canvas Contexts
     if (typeof document !== 'undefined') {
       this.boardCanvas = document.getElementById(boardCanvasId);
@@ -621,19 +790,26 @@ class Player {
     return this.id === 1 ? 'JUGADOR 1' : 'JUGADOR 2';
   }
 
+  generatePiece() {
+    this.pieceSpawnCount = (this.pieceSpawnCount || 0) + 1;
+    const isSpecial = (this.pieceSpawnCount % 5 === 0);
+    return Tetromino.getRandom(isSpecial);
+  }
+
   init() {
     this.board.reset();
     this.scoreSystem.reset();
     this.hasToppedOut = false;
     this.gravityAccumulator = 0;
-    this.nextPiece = Tetromino.getRandom();
+    this.pieceSpawnCount = 0;
+    this.nextPiece = this.generatePiece();
     this.spawnNextPiece();
     this.updateUI();
   }
 
   spawnNextPiece() {
     this.activePiece = this.nextPiece;
-    this.nextPiece = Tetromino.getRandom();
+    this.nextPiece = this.generatePiece();
 
     // Center spawn horizontally at top
     this.activePiece.x = Math.floor((this.board.cols - this.activePiece.matrix.length) / 2);
@@ -664,12 +840,16 @@ class Player {
   rotate() {
     if (!this.activePiece || this.hasToppedOut) return;
     const rotated = this.activePiece.rotateClockwise();
+    const rotatedColors = this.activePiece.isSpecial ? this.activePiece.rotateColorMatrix(this.activePiece.colorMatrix) : null;
 
     // Basic wall-kick / boundary check
     const kicks = [0, -1, 1, -2, 2];
     for (const offset of kicks) {
       if (this.board.isValidPosition(this.activePiece, this.activePiece.x + offset, this.activePiece.y, rotated)) {
         this.activePiece.matrix = rotated;
+        if (rotatedColors) {
+          this.activePiece.colorMatrix = rotatedColors;
+        }
         this.activePiece.x += offset;
         return;
       }
@@ -699,12 +879,40 @@ class Player {
   }
 
   lockPiece() {
+    const isSpecialPiece = Boolean(this.activePiece && this.activePiece.isSpecial);
     this.board.merge(this.activePiece);
 
-    // Clear completed lines and award arcade scoring
-    const clearedLines = this.board.clearLines();
-    if (clearedLines > 0) {
-      this.scoreSystem.addLineScore(clearedLines);
+    // Clear completed lines and check if any full row was 100% special minos
+    const { cleared, hasHomogeneousSpecialLine } = this.board.clearLines();
+
+    if (cleared > 0) {
+      let isDoubled = false;
+
+      // Exclusive Garbage Attack conditions:
+      // Condition 1: Executed directly with a Special Tetromino (isSpecialPiece === true)
+      // Condition 2: Cleared at least one row composed 100% of special minos (hasHomogeneousSpecialLine === true)
+      // Any clear executed by a standard piece on heterogeneous rows does NOT attack.
+      const isGarbageAttack = (isSpecialPiece || hasHomogeneousSpecialLine);
+
+      if (isGarbageAttack && this.opponent) {
+        let garbageToSend = 0;
+        if (cleared === 1 || cleared === 2) {
+          garbageToSend = 2;
+        } else if (cleared === 3) {
+          garbageToSend = 3;
+        } else if (cleared === 4) {
+          garbageToSend = 4;
+          // Direct +10,000 pts bonus for special Tetris
+          this.scoreSystem.addSpecialTetrisBonus();
+        }
+
+        const attackResult = this.opponent.receiveGarbage(garbageToSend);
+        if (attackResult && attackResult.isSaturated) {
+          isDoubled = true;
+        }
+      }
+
+      this.scoreSystem.addLineScore(cleared, isDoubled);
     }
 
     // Reset gravity accumulator
@@ -718,6 +926,27 @@ class Player {
     // Spawn upcoming piece
     this.spawnNextPiece();
     this.updateUI();
+  }
+
+  receiveGarbage(count) {
+    const result = this.board.receiveGarbageLines(count);
+    if (result.inserted > 0 && this.activePiece) {
+      // If newly elevated blocks collide with active piece, try pushing it upward
+      if (!this.board.isValidPosition(this.activePiece, this.activePiece.x, this.activePiece.y)) {
+        let adjusted = false;
+        for (let offset = 1; offset <= result.inserted; offset++) {
+          if (this.board.isValidPosition(this.activePiece, this.activePiece.x, this.activePiece.y - offset)) {
+            this.activePiece.y -= offset;
+            adjusted = true;
+            break;
+          }
+        }
+        if (!adjusted) {
+          this.hasToppedOut = true;
+        }
+      }
+    }
+    return result;
   }
 
   update(deltaTime) {
@@ -764,7 +993,10 @@ class Player {
     for (let r = 0; r < mSize; r++) {
       for (let c = 0; c < mSize; c++) {
         if (matrix[r][c] !== 0) {
-          this.board.drawBlock(ctx, startX + c * size, startY + r * size, size, this.nextPiece.color);
+          const color = (this.nextPiece.isSpecial && this.nextPiece.colorMatrix && this.nextPiece.colorMatrix[r][c])
+            ? this.nextPiece.colorMatrix[r][c]
+            : this.nextPiece.color;
+          this.board.drawBlock(ctx, startX + c * size, startY + r * size, size, color, this.nextPiece.isSpecial, false);
         }
       }
     }
@@ -807,6 +1039,10 @@ class Engine {
       'p2-score',
       'p2-lines'
     );
+
+    // Wire cross-player opponent references for competitive attacks
+    this.player1.opponent = this.player2;
+    this.player2.opponent = this.player1;
 
     // DOM Elements
     this.homeScreen = document.getElementById('home-screen');
