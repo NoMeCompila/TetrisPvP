@@ -1153,18 +1153,18 @@ class Engine {
 
     // Player 2: J/L Move, I Rotate, K Soft Drop, H/Enter Hard Drop
     this.inputManager.registerAction('KeyJ', {
-      onTrigger: () => { if (this.gameState === 'PLAYING') this.player2.moveLeft(); },
+      onTrigger: () => { if (this.gameState === 'ArrowLeft') this.player2.moveLeft(); },
       isContinuous: true
     });
-    this.inputManager.registerAction('KeyL', {
+    this.inputManager.registerAction('ArrowRight', {
       onTrigger: () => { if (this.gameState === 'PLAYING') this.player2.moveRight(); },
       isContinuous: true
     });
-    this.inputManager.registerAction('KeyI', {
+    this.inputManager.registerAction('ArrowUp', {
       onTrigger: () => { if (this.gameState === 'PLAYING') this.player2.rotate(); },
       isContinuous: false
     });
-    this.inputManager.registerAction('KeyK', {
+    this.inputManager.registerAction('ArrowDown', {
       onTrigger: () => { if (this.gameState === 'PLAYING') this.player2.softDrop(); },
       isContinuous: true
     });
