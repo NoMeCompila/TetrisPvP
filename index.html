@@ -65,9 +65,14 @@
       <header class="match-header">
         <div class="header-brand">TETRIS<span class="accent-text">PvP</span></div>
         <div id="global-goal" class="goal-indicator" data-i18n="goalIndicator">META: 100.000 PTS</div>
-        <button id="btn-sound-match-toggle" class="arcade-btn btn-sound match-sound-btn" type="button" aria-label="Alternar sonido">
-          <span id="match-sound-icon">🔊</span>
-        </button>
+        <div class="match-header-actions">
+          <button id="btn-pause-toggle" class="arcade-btn btn-pause" type="button" aria-label="Pausa">
+            <span class="pause-kbd-label"><kbd>ESC</kbd> <span data-i18n="pauseAction">Pausa</span></span>
+          </button>
+          <button id="btn-sound-match-toggle" class="arcade-btn btn-sound match-sound-btn" type="button" aria-label="Alternar sonido">
+            <span id="match-sound-icon">🔊</span>
+          </button>
+        </div>
       </header>
 
       <!-- Split Screen Arenas -->
@@ -197,6 +202,9 @@
 
           <div class="rules-section">
             <h3 class="section-title" data-i18n="rulesHeadingControls">CONTROLES (MISMO TECLADO)</h3>
+            <div class="general-controls-bar">
+              <span class="key-hint"><kbd>ESC</kbd> : <span data-i18n="ctrlPauseDesc">Pausa / Continuar</span></span>
+            </div>
             <div class="controls-comparison">
               <div class="player-controls p1-controls">
                 <h4 class="ctrl-player-label tag-p1" data-i18n="p1ControlsLabel">JUGADOR 1 (IZQUIERDA)</h4>
@@ -259,6 +267,24 @@
           </button>
           <button id="btn-return-menu" class="arcade-btn btn-secondary" type="button">
             <span class="btn-text" data-i18n="btnReturnMenu">MENÚ PRINCIPAL</span>
+          </button>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Pause Overlay Modal -->
+    <div id="pause-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="pause-title">
+      <div class="modal-card pause-card">
+        <header class="modal-header">
+          <h2 id="pause-title" class="modal-title blink" data-i18n="pauseTitle">¡PARTIDA EN PAUSA!</h2>
+        </header>
+        <div class="modal-body text-center">
+          <div class="pause-icon-badge">⏸️</div>
+          <p class="pause-hint-text" data-i18n="pauseHint">Presioná <kbd>ESC</kbd> para continuar jugando</p>
+        </div>
+        <footer class="modal-footer">
+          <button id="btn-resume-game" class="arcade-btn btn-primary" type="button">
+            <span class="btn-text" data-i18n="btnResume">CONTINUAR</span>
           </button>
         </footer>
       </div>

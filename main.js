@@ -62,6 +62,11 @@ const TRANSLATIONS = {
     ctrlSoftDropDesc: "Caída Suave (Acelerar)",
     ctrlHardDropDesc: "Caída Rápida (Instantánea)",
     btnGotIt: "¡ENTENDIDO!",
+    pauseAction: "Pausa",
+    pauseTitle: "¡PARTIDA EN PAUSA!",
+    pauseHint: "Presioná ESC para continuar jugando",
+    btnResume: "CONTINUAR",
+    ctrlPauseDesc: "Pausa / Continuar",
     gameOverTitle: "¡PARTIDA TERMINADA!",
     winsSuffix: "¡GANA!",
     reasonTarget: (pts) => `ALCANZÓ LA META DE PUNTOS (${pts.toLocaleString('es-ES')} PTS)`,
@@ -125,6 +130,11 @@ const TRANSLATIONS = {
     ctrlSoftDropDesc: "Soft Drop (Accelerate)",
     ctrlHardDropDesc: "Hard Drop (Instant)",
     btnGotIt: "GOT IT!",
+    pauseAction: "Pause",
+    pauseTitle: "MATCH PAUSED!",
+    pauseHint: "Press ESC to resume playing",
+    btnResume: "RESUME",
+    ctrlPauseDesc: "Pause / Resume",
     gameOverTitle: "MATCH FINISHED!",
     winsSuffix: "WINS!",
     reasonTarget: (pts) => `REACHED TARGET SCORE (${pts.toLocaleString('en-US')} PTS)`,
@@ -701,6 +711,11 @@ class InputManager {
       event.preventDefault();
     }
 
+    // Ignore OS auto-repeat for single discrete actions (e.g. Pause, Rotate, Hard Drop)
+    if (event.repeat && !action.isContinuous) {
+      return;
+    }
+
     if (!action.isContinuous) {
       // Single action trigger (e.g. Rotate or Hard Drop)
       if (!this.singleActionLocks.has(code)) {
@@ -1062,6 +1077,7 @@ class Engine {
     this.gameScreen = document.getElementById('game-screen');
     this.instructionsModal = document.getElementById('instructions-modal');
     this.gameOverModal = document.getElementById('game-over-modal');
+    this.pauseOverlay = document.getElementById('pause-overlay');
 
     this.winnerAnnouncement = document.getElementById('winner-announcement');
     this.winReason = document.getElementById('win-reason');
@@ -1176,6 +1192,14 @@ class Engine {
       onTrigger: () => { if (this.gameState === 'PLAYING') this.player2.hardDrop(); },
       isContinuous: false
     });
+
+    // Global Match Pause/Resume: Escape Key
+    this.inputManager.registerAction('Escape', {
+      onTrigger: () => {
+        this.togglePause();
+      },
+      isContinuous: false
+    });
   }
 
   setupUIListeners() {
@@ -1262,6 +1286,76 @@ class Engine {
       this.hideGameOver();
       this.returnToMenu();
     });
+
+    // Pause Controls
+    const pauseToggleBtn = document.getElementById('btn-pause-toggle');
+    if (pauseToggleBtn) {
+      pauseToggleBtn.addEventListener('click', () => {
+        this.togglePause();
+      });
+    }
+
+    const resumeBtn = document.getElementById('btn-resume-game');
+    if (resumeBtn) {
+      resumeBtn.addEventListener('click', () => {
+        if (this.gameState === 'PAUSED') {
+          this.resumeMatch();
+        }
+      });
+    }
+  }
+
+  hidePause() {
+    if (this.pauseOverlay) {
+      this.pauseOverlay.classList.add('hidden');
+    }
+  }
+
+  showPause() {
+    if (this.pauseOverlay) {
+      this.pauseOverlay.classList.remove('hidden');
+    }
+  }
+
+  pauseMatch() {
+    if (this.gameState !== 'PLAYING') return;
+
+    this.gameState = 'PAUSED';
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+    this.inputManager.reset();
+    if (window.soundManager) {
+      window.soundManager.pauseBGM();
+    }
+    this.showPause();
+  }
+
+  resumeMatch() {
+    if (this.gameState !== 'PAUSED') return;
+
+    this.hidePause();
+    this.gameState = 'PLAYING';
+    this.lastTimestamp = performance.now();
+    this.inputManager.reset();
+
+    if (window.soundManager) {
+      window.soundManager.resumeBGM();
+    }
+
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+    this.animationFrameId = requestAnimationFrame(this.gameLoop.bind(this));
+  }
+
+  togglePause() {
+    if (this.gameState === 'PLAYING') {
+      this.pauseMatch();
+    } else if (this.gameState === 'PAUSED') {
+      this.resumeMatch();
+    }
   }
 
   toggleInstructions(show) {
@@ -1280,6 +1374,7 @@ class Engine {
     this.homeScreen.classList.remove('active');
     this.gameScreen.classList.add('active');
     this.hideGameOver();
+    this.hidePause();
     this.toggleInstructions(false);
 
     // Apply configured target score to both players
@@ -1353,6 +1448,7 @@ class Engine {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
+    this.hidePause();
     if (window.soundManager) {
       window.soundManager.stopBGM();
       window.soundManager.playGameOver();
@@ -1384,6 +1480,8 @@ class Engine {
     if (window.soundManager) {
       window.soundManager.stopBGM();
     }
+    this.hidePause();
+    this.hideGameOver();
     this.gameScreen.classList.remove('active');
     this.homeScreen.classList.add('active');
   }

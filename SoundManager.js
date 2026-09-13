@@ -39,6 +39,10 @@ class SoundManager {
      * @type {boolean} Indicador de si hay una partida activa para coordinar la reproducción.
      */
     this.isMatchActive = false;
+    /**
+     * @type {boolean} Indicador de si la partida está en pausa para evitar autoreanudar BGM al desmutear.
+     */
+    this.isPaused = false;
   }
 
   /**
@@ -59,6 +63,7 @@ class SoundManager {
    */
   startBGM() {
     this.isMatchActive = true;
+    this.isPaused = false;
     this.ensureBGM();
 
     if (this.bgm) {
@@ -76,10 +81,36 @@ class SoundManager {
   }
 
   /**
+   * Pausa la música de fondo sin reiniciar la posición de reproducción (currentTime).
+   */
+  pauseBGM() {
+    this.isPaused = true;
+    if (this.bgm) {
+      this.bgm.pause();
+    }
+  }
+
+  /**
+   * Reanuda la música de fondo desde su posición actual tras una pausa.
+   */
+  resumeBGM() {
+    this.isPaused = false;
+    if (this.bgm && !this.isMuted && this.isMatchActive) {
+      const playPromise = this.bgm.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(err => {
+          console.warn('Reproducción de BGM en espera o bloqueada por política de Autoplay al reanudar:', err);
+        });
+      }
+    }
+  }
+
+  /**
    * Detiene inmediatamente la música de fondo y restablece su posición de reproducción al inicio.
    */
   stopBGM() {
     this.isMatchActive = false;
+    this.isPaused = false;
     if (this.bgm) {
       this.bgm.pause();
       this.bgm.currentTime = 0;
@@ -147,8 +178,8 @@ class SoundManager {
       this.bgm.muted = this.isMuted;
       this.bgm.volume = this.isMuted ? 0 : this.bgmVolume;
 
-      // Si se desmutea durante una partida en curso y el audio estaba en pausa, reanudar
-      if (!this.isMuted && this.isMatchActive && this.bgm.paused) {
+      // Si se desmutea durante una partida en curso (y no está en pausa), reanudar
+      if (!this.isMuted && this.isMatchActive && !this.isPaused && this.bgm.paused) {
         const playPromise = this.bgm.play();
         if (playPromise !== undefined) {
           playPromise.catch(err => console.warn('No se pudo reanudar BGM al desmutear:', err));
