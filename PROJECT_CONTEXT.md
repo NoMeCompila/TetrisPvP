@@ -97,10 +97,10 @@ WordsWars/
 
 | Acción | 🎮 Jugador 1 (Izquierda) | 🕹️ Jugador 2 (Derecha) | Tipo de Input |
 |---|---|---|---|
-| **Mover Izquierda** | <kbd>A</kbd> | <kbd>J</kbd> | Continuo (DAS / ARR) |
-| **Mover Derecha** | <kbd>D</kbd> | <kbd>L</kbd> | Continuo (DAS / ARR) |
-| **Rotar (Horario)** | <kbd>W</kbd> | <kbd>I</kbd> | Disparo Único |
-| **Caída Suave (Soft Drop)** | <kbd>S</kbd> | <kbd>K</kbd> | Continuo (Paso acelerado) |
+| **Mover Izquierda** | <kbd>A</kbd> | <kbd>←</kbd> | Continuo (DAS / ARR) |
+| **Mover Derecha** | <kbd>D</kbd> | <kbd>→</kbd> | Continuo (DAS / ARR) |
+| **Rotar (Horario)** | <kbd>W</kbd> | <kbd>↑</kbd> | Disparo Único |
+| **Caída Suave (Soft Drop)** | <kbd>S</kbd> | <kbd>↓</kbd> | Continuo (Paso acelerado) |
 | **Caída Rápida (Hard Drop)** | <kbd>F</kbd> o <kbd>Space</kbd> | <kbd>H</kbd> o <kbd>Enter</kbd> | Disparo Único (Instantáneo + Puntos) |
 
 ---

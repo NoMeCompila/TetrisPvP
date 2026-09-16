@@ -29,10 +29,10 @@
 
 | Action | 🔵 Player 1 (Left Arena) | 🔴 Player 2 (Right Arena) | Input Behavior |
 |---|:---:|:---:|---|
-| **Move Left** | <kbd>A</kbd> | <kbd>J</kbd> | Continuous (DAS / ARR) |
-| **Move Right** | <kbd>D</kbd> | <kbd>L</kbd> | Continuous (DAS / ARR) |
-| **Rotate Clockwise** | <kbd>W</kbd> | <kbd>I</kbd> | Single Trigger (Wall Kicks) |
-| **Soft Drop** | <kbd>S</kbd> | <kbd>K</kbd> | Continuous Accelerated Descent |
+| **Move Left** | <kbd>A</kbd> | <kbd>←</kbd> | Continuous (DAS / ARR) |
+| **Move Right** | <kbd>D</kbd> | <kbd>→</kbd> | Continuous (DAS / ARR) |
+| **Rotate Clockwise** | <kbd>W</kbd> | <kbd>↑</kbd> | Single Trigger (Wall Kicks) |
+| **Soft Drop** | <kbd>S</kbd> | <kbd>↓</kbd> | Continuous Accelerated Descent |
 | **Hard Drop** | <kbd>F</kbd> / <kbd>Space</kbd> | <kbd>H</kbd> / <kbd>Enter</kbd> | Instant Lock (+20 pts/cell) |
 
 ---
